@@ -42,6 +42,8 @@ POSTGRES_PASSWORD  # user password for connection to database
 POSTGRES_HOST      # IP-address or domain of database server
 POSTGRES_PORT      # port of database server
 POSTGRES_DB        # database name
+
+VITE_API_URL       # IP address of your client server
 ```
 
 ## Running
