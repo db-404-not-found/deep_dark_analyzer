@@ -1,0 +1,72 @@
+$main-color: #1567c6;
+$subtle-color: #1568c6ce;
+
+$btn-shadow: 2px 2px 8px 0px rgba(34, 60, 80, 0.2);
+
+.header {
+    background-color: $main-color;
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.headertext {
+    color: white;
+}
+
+.textareas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 80vw;
+    margin: auto;
+    margin-top: 2rem;
+    column-gap: 2rem;
+}
+
+.wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+%textfield {
+    height: 50rem;
+    width: 100%;
+    resize: none;
+    padding: .8rem;
+    font-size: 1.2rem;
+    outline: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+.input {
+    @extend %textfield;
+}
+
+.output {
+    @extend %textfield;
+}
+
+.button {
+    margin-top: .5rem;
+    color: white;
+    background-color: $main-color;
+    border-radius: .5rem;
+    padding: .5rem 5rem;
+    border-width: 0;
+    font-size: 1.2rem;
+    
+    -webkit-box-shadow: $btn-shadow;
+    -moz-box-shadow: $btn-shadow;
+    box-shadow: $btn-shadow;
+
+    &:hover {
+        background-color: $subtle-color;
+        cursor: pointer;
+    }
+}
