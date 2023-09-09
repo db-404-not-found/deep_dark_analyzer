@@ -1,0 +1,64 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-inference}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+
+  backend:
+    image: inference
+    depends_on:
+      - db
+    restart: unless-stopped
+    build:
+      context: ./
+      dockerfile: ./docker/backend.dockerfile
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-inference}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    command: gunicorn -c backend/gunicorn.conf.py backend.main:app
+
+  worker:
+    build:
+      context: ./
+      dockerfile: docker/inference/backend.dockerfile
+    depends_on:
+      - backend
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-inference}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    command: celery -A backend.celery.tasks.celery worker --loglevel=info --logfile=celery.log
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/nginx.dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - 80:80
+      - 443:443
+
+volumes:
+  postgres_data:
+    driver: local
