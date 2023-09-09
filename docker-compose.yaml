@@ -3,8 +3,6 @@ services:
   db:
     image: postgres:15
     restart: unless-stopped
-    ports:
-      - 5432:5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
@@ -15,8 +13,6 @@ services:
   rabbitmq:
     image: rabbitmq
     restart: unless-stopped
-    ports:
-      - 5672:5672
 
   backend:
     image: inference
@@ -37,7 +33,7 @@ services:
   worker:
     build:
       context: ./
-      dockerfile: docker/inference/backend.dockerfile
+      dockerfile: docker/backend.dockerfile
     depends_on:
       - backend
     environment:
