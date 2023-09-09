@@ -4,15 +4,53 @@ import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {  toast } from 'react-toastify'
 import { sendToAnalyze, fetchResult} from "./fetch"
 
+type State = 'QUEUED' | 'STARTED' | 'RESPONSED' | ''
+type Index = [number, number]
+type Result = {
+  indexes: Index[];
+  estimation: string;
+} | Record<string, never>
+
+interface QueryData {
+  id: string;
+  status: State;
+  result: Result;
+}
+
+const replaceText = (text: string, indices: Index[]) => {
+  let res = text
+  for (let [first, second] of indices.reverse()) {
+    res = res.slice(0, first) +`<span class=\'${styles.highlight}\'>` + res.slice(first, second) + '</span>' + res.slice(second)
+  }
+  return {
+    __html: res
+  }
+}
+
+const refetchInterval = import.meta.env.VITE_REFETCH_INTERVAL_IN_SECONDS * 1000
+
 function App() {
   const [input, setInput] = useState('')
-  const [output, setOutput] = useState('')
+  const [output, setOutput] = useState<Result>({})
+
+  const [currentState, setCurrentState] = useState<State>('')
+
+  const [currentId, setCurrentId] = useState('')
   const client = useQueryClient()
 
-  const {mutate: send, isLoading: isSending} = useMutation({
+  const {mutate: send} = useMutation({
     mutationFn: sendToAnalyze,
-    onSuccess() {
+    onMutate() {
+      setCurrentState('QUEUED')
+    },
+    onSuccess(data: QueryData) {
       client.invalidateQueries('text')
+      setCurrentId(data.id)
+      setCurrentState(data.status)
+
+      if (data.status === 'RESPONSED') {
+        setOutput(data.result)
+      }
     },
     onError: () => {
       toast("Произошла ошибка", {
@@ -22,16 +60,21 @@ function App() {
   })
 
   useQuery({
-    queryFn: fetchResult,
+    enabled: (currentState === 'STARTED' || currentState === "QUEUED") && currentId !== '',
+    queryFn: () => fetchResult(currentId),
     queryKey: ['text'],
-    onSuccess(data) {
-      setOutput(data)
+    onSuccess(data: QueryData) {
+      if (data.status === 'RESPONSED') {
+        setOutput(data.result)
+        setCurrentState(data.status)
+      }
     },
+    refetchInterval: refetchInterval
   })
 
   const onClick = () => {
     send(input)
-  }
+  } 
 
   return (
     <main>
@@ -43,12 +86,23 @@ function App() {
       <div className={styles.textareas}>
         <div className={styles.wrapper}>
           <textarea className={styles.input} value={input} onChange={e => setInput(e.target.value)} placeholder="Введите текст..."/>
-          <button className={styles.button} onClick={onClick} disabled={isSending} type="button">
+          <button 
+            className={styles.button} 
+            onClick={onClick} 
+            disabled={currentState === 'STARTED' || currentState === 'QUEUED'} 
+            type="button"
+          >
             Анализ
           </button>
         </div>
         <div className={styles.wrapper}>
-          <textarea className={styles.output} value={output} readOnly placeholder="Здесь появится результат анализа"/>
+          <div className={styles.output}>
+            {(currentState === 'STARTED' || currentState === 'QUEUED') && <span>Loading...</span>}
+            {(currentState === 'RESPONSED') && <>
+              <div className={styles.press}>Оценка рейтинга пресс-релиза: {output.estimation}</div>
+              <div dangerouslySetInnerHTML={replaceText(input, output.indexes)}/>
+            </>}
+          </div>
         </div>
       </div>
     </main>
