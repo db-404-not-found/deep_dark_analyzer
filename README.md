@@ -72,7 +72,7 @@ poetry run gunicorn -c backend/gunicorn.conf.py backend.main:app
 ```
 
 After executing commands above you can open browser on
-[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) for use
+[http://127.0.0.1:8000/docs/swagger](http://127.0.0.1:8000/docs/swagger) for use
 Swagger with our API.
 
 ### Database migration
