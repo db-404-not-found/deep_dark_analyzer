@@ -40,6 +40,9 @@ def setup_app(settings: Settings) -> FastAPI:
         description=settings.DESCRIPTION,
         version=settings.VERSION,
         lifespan=lifespan,
+        docs_url="/docs/swagger",
+        redoc_url="/docs/redoc",
+        openapi_url="/docs/openapi.json",
     )
 
     app.add_middleware(
