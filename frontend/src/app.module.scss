@@ -1,6 +1,8 @@
 $main-color: #1567c6;
 $subtle-color: #1568c6ce;
 
+$default-height: 40ch;
+
 $btn-shadow: 2px 2px 8px 0px rgba(34, 60, 80, 0.2);
 
 .header {
@@ -23,6 +25,10 @@ $btn-shadow: 2px 2px 8px 0px rgba(34, 60, 80, 0.2);
     margin: auto;
     margin-top: 2rem;
     column-gap: 2rem;
+
+    @media (max-width: 767px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .wrapper {
@@ -30,10 +36,11 @@ $btn-shadow: 2px 2px 8px 0px rgba(34, 60, 80, 0.2);
     display: flex;
     flex-direction: column;
     align-items: center;
+    row-gap: .5rem;
 }
 
 %textfield {
-    height: 50rem;
+    min-height: $default-height;
     width: 100%;
     resize: none;
     padding: .8rem;
@@ -50,6 +57,12 @@ $btn-shadow: 2px 2px 8px 0px rgba(34, 60, 80, 0.2);
 
 .output {
     @extend %textfield;
+    border: 1px solid black;
+    padding: 0;
+    
+    & > div {
+        padding: .8rem;
+    }
 }
 
 .button {
@@ -78,4 +91,12 @@ $btn-shadow: 2px 2px 8px 0px rgba(34, 60, 80, 0.2);
 .press {
     font-weight: 700;
     margin-bottom: 1rem;
+}
+
+.paragraph {
+    overflow-wrap: break-word;
+    max-height: $default-height;
+    overflow-y: scroll; 
+
+    padding: .8rem;
 }
