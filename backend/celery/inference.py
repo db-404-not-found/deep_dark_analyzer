@@ -1,4 +1,5 @@
 from pathlib import Path
+from time import sleep
 from typing import Any
 
 # import torch
@@ -32,6 +33,7 @@ class MultiFunctionalModel:
         *args: Any,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        sleep(15)
         return {
             "estimation": "AAA",
             "indexes": [
