@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import styles from './app.module.scss'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import {  toast } from 'react-toastify'
@@ -27,7 +27,7 @@ const replaceText = (text: string, indices: Index[]) => {
   }
 }
 
-const refetchInterval = import.meta.env.VITE_REFETCH_INTERVAL_IN_SECONDS * 1000
+const refetchInterval = import.meta.env.VITE_REFETCH_INTERVAL_IN_SECONDS * 1000 || 5000
 
 function App() {
   const [input, setInput] = useState('')
@@ -38,7 +38,7 @@ function App() {
   const [currentId, setCurrentId] = useState('')
   const client = useQueryClient()
 
-  const {mutate: send} = useMutation({
+  const {mutate: send, data: dataFromMutation} = useMutation({
     mutationFn: sendToAnalyze,
     onMutate() {
       setCurrentState('QUEUED')
@@ -59,8 +59,17 @@ function App() {
     }
   })
 
+  const replacer = useMemo(() => {
+    if (output.indexes) {
+      return replaceText(input, output.indexes)
+    }
+    return {
+      __html: ""
+    }
+  }, [output])
+
   useQuery({
-    enabled: (currentState === 'STARTED' || currentState === "QUEUED") && currentId !== '',
+    enabled: !!dataFromMutation && currentState !== 'RESPONSED',
     queryFn: () => fetchResult(currentId),
     queryKey: ['text'],
     onSuccess(data: QueryData) {
@@ -99,10 +108,11 @@ function App() {
           <div className={styles.output}>
             {(currentState === 'STARTED' || currentState === 'QUEUED') && <span>Loading...</span>}
             {(currentState === 'RESPONSED') && <>
-              <div className={styles.press}>Оценка рейтинга пресс-релиза: {output.estimation}</div>
-              <div dangerouslySetInnerHTML={replaceText(input, output.indexes)}/>
+                <p dangerouslySetInnerHTML={replacer} className={styles.paragraph}>
+                </p>   
             </>}
           </div>
+          {(currentState === 'RESPONSED') && <div className={styles.press}>Оценка рейтинга пресс-релиза: {output.estimation}</div>}
         </div>
       </div>
     </main>
